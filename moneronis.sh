@@ -6,9 +6,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' 
 
-# Check if monero-wallet-cli is installed
-if ! command -v monero-wallet-cli &> /dev/null; then
-    echo -e "${RED}Error: monero-wallet-cli is not installed.${NC}"
+# Check if monero is installed
+if ! command -v monero &> /dev/null; then
+    echo -e "${RED}Error: monero is not installed.${NC}"
     echo "Please install it first using: sudo apt-get install monero"
     exit 1
 fi
@@ -59,9 +59,9 @@ show_payment_verification_menu() {
     echo -e "${GREEN}Choose an option:${NC}"
 }
 
-# Function to execute monero-wallet-cli commands
+# Function to execute monero commands
 execute_command() {
-    echo "$1" | monero-wallet-cli
+    echo "$1" | monero
     echo -e "\n${GREEN}Press Enter to continue...${NC}"
     read
 }
