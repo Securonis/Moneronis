@@ -1,14 +1,14 @@
 #!/bin/bash
 
-
+# Colors for better visibility
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' 
+NC='\033[0m' # No Color
 
 # Check if monero is installed
-if ! command -v monero &> /dev/null; then
-    echo -e "${RED}Error: monero is not installed.${NC}"
+if ! command -v monero-wallet-cli &> /dev/null; then
+    echo -e "${RED}Error: Monero is not installed.${NC}"
     echo "Please install it first using: sudo apt-get install monero"
     exit 1
 fi
@@ -17,21 +17,29 @@ fi
 show_menu() {
     clear
     echo -e "${GREEN}=== Monero Wallet Menu ===${NC}"
-    echo -e "${YELLOW}1.${NC} Show Wallet Info"
-    echo -e "${YELLOW}2.${NC} Show Balance"
-    echo -e "${YELLOW}3.${NC} Show All Addresses"
-    echo -e "${YELLOW}4.${NC} Create New Subaddress"
-    echo -e "${YELLOW}5.${NC} Send XMR"
-    echo -e "${YELLOW}6.${NC} Show Transactions"
-    echo -e "${YELLOW}7.${NC} Sweep All Funds"
-    echo -e "${YELLOW}8.${NC} Show Seed Words"
-    echo -e "${YELLOW}9.${NC} Refresh Wallet"
-    echo -e "${YELLOW}10.${NC} Check Wallet Status"
-    echo -e "${YELLOW}11.${NC} Integrated Address Operations"
-    echo -e "${YELLOW}12.${NC} Payment Verification"
-    echo -e "${YELLOW}13.${NC} Transaction Key Management"
-    echo -e "${YELLOW}14.${NC} Make Donation"
-    echo -e "${YELLOW}15.${NC} Show Version"
+    echo -e "${YELLOW}Wallet Management:${NC}"
+    echo -e "${YELLOW}1.${NC} Create New Wallet"
+    echo -e "${YELLOW}2.${NC} Open Existing Wallet"
+    echo -e "${YELLOW}3.${NC} Restore Wallet from Seed"
+    echo -e "\n${YELLOW}Wallet Operations:${NC}"
+    echo -e "${YELLOW}4.${NC} Show Wallet Info"
+    echo -e "${YELLOW}5.${NC} Show Balance"
+    echo -e "${YELLOW}6.${NC} Show All Addresses"
+    echo -e "${YELLOW}7.${NC} Create New Subaddress"
+    echo -e "${YELLOW}8.${NC} Send XMR"
+    echo -e "${YELLOW}9.${NC} Show Transactions"
+    echo -e "${YELLOW}10.${NC} Sweep All Funds"
+    echo -e "${YELLOW}11.${NC} Show Seed Words"
+    echo -e "${YELLOW}12.${NC} Refresh Wallet"
+    echo -e "${YELLOW}13.${NC} Check Wallet Status"
+    echo -e "\n${YELLOW}Advanced Features:${NC}"
+    echo -e "${YELLOW}14.${NC} Integrated Address Operations"
+    echo -e "${YELLOW}15.${NC} Payment Verification"
+    echo -e "${YELLOW}16.${NC} Transaction Key Management"
+    echo -e "${YELLOW}17.${NC} Address Book"
+    echo -e "${YELLOW}18.${NC} Wallet Description"
+    echo -e "${YELLOW}19.${NC} Make Donation For Monero"
+    echo -e "${YELLOW}20.${NC} Show Version"
     echo -e "${YELLOW}0.${NC} Exit"
     echo
     echo -e "${GREEN}Choose an option:${NC}"
@@ -59,11 +67,88 @@ show_payment_verification_menu() {
     echo -e "${GREEN}Choose an option:${NC}"
 }
 
-# Function to execute monero commands
+# Function to show address book menu
+show_address_book_menu() {
+    clear
+    echo -e "${GREEN}=== Address Book Operations ===${NC}"
+    echo -e "${YELLOW}1.${NC} Show All Entries"
+    echo -e "${YELLOW}2.${NC} Add New Entry"
+    echo -e "${YELLOW}3.${NC} Delete Entry"
+    echo -e "${YELLOW}0.${NC} Back to Main Menu"
+    echo
+    echo -e "${GREEN}Choose an option:${NC}"
+}
+
+# Function to execute monero-wallet-cli commands
 execute_command() {
-    echo "$1" | monero
+    echo "$1" | monero-wallet-cli
     echo -e "\n${GREEN}Press Enter to continue...${NC}"
     read
+}
+
+# Function to create new wallet
+create_new_wallet() {
+    echo -e "${GREEN}Enter new wallet name:${NC}"
+    read -r wallet_name
+    echo -e "${GREEN}Choose network:${NC}"
+    echo "1. Mainnet"
+    echo "2. Stagenet"
+    echo "3. Testnet"
+    read -r network_choice
+    
+    case $network_choice in
+        1)
+            network_flag=""
+            ;;
+        2)
+            network_flag="--stagenet"
+            ;;
+        3)
+            network_flag="--testnet"
+            ;;
+        *)
+            echo -e "${RED}Invalid choice. Using mainnet.${NC}"
+            network_flag=""
+            ;;
+    esac
+    
+    monero-wallet-cli $network_flag --generate-new-wallet "$wallet_name"
+}
+
+# Function to open existing wallet
+open_existing_wallet() {
+    echo -e "${GREEN}Enter wallet file path:${NC}"
+    read -r wallet_path
+    monero-wallet-cli --wallet-file "$wallet_path"
+}
+
+# Function to restore wallet from seed
+restore_wallet() {
+    echo -e "${GREEN}Enter new wallet name:${NC}"
+    read -r wallet_name
+    echo -e "${GREEN}Choose network:${NC}"
+    echo "1. Mainnet"
+    echo "2. Stagenet"
+    echo "3. Testnet"
+    read -r network_choice
+    
+    case $network_choice in
+        1)
+            network_flag=""
+            ;;
+        2)
+            network_flag="--stagenet"
+            ;;
+        3)
+            network_flag="--testnet"
+            ;;
+        *)
+            echo -e "${RED}Invalid choice. Using mainnet.${NC}"
+            network_flag=""
+            ;;
+    esac
+    
+    monero-wallet-cli $network_flag --restore-deterministic-wallet --generate-new-wallet "$wallet_name"
 }
 
 # Main loop
@@ -73,15 +158,24 @@ while true; do
 
     case $choice in
         1)
-            execute_command "wallet_info"
+            create_new_wallet
             ;;
         2)
-            execute_command "balance"
+            open_existing_wallet
             ;;
         3)
-            execute_command "address all"
+            restore_wallet
             ;;
         4)
+            execute_command "wallet_info"
+            ;;
+        5)
+            execute_command "balance"
+            ;;
+        6)
+            execute_command "address all"
+            ;;
+        7)
             echo -e "${GREEN}Enter label for new subaddress (optional):${NC}"
             read -r label
             if [ -z "$label" ]; then
@@ -90,14 +184,14 @@ while true; do
                 execute_command "address new $label"
             fi
             ;;
-        5)
+        8)
             echo -e "${GREEN}Enter destination address:${NC}"
             read -r address
             echo -e "${GREEN}Enter amount to send:${NC}"
             read -r amount
             execute_command "transfer $address $amount"
             ;;
-        6)
+        9)
             echo -e "${YELLOW}Select transaction type:${NC}"
             echo "1. All"
             echo "2. Incoming"
@@ -116,21 +210,21 @@ while true; do
                 *) echo -e "${RED}Invalid option${NC}" ;;
             esac
             ;;
-        7)
+        10)
             echo -e "${GREEN}Enter destination address for sweeping:${NC}"
             read -r sweep_address
             execute_command "sweep_all $sweep_address"
             ;;
-        8)
+        11)
             execute_command "seed"
             ;;
-        9)
+        12)
             execute_command "refresh"
             ;;
-        10)
+        13)
             execute_command "status"
             ;;
-        11)
+        14)
             while true; do
                 show_integrated_address_menu
                 read -r int_choice
@@ -153,7 +247,7 @@ while true; do
                 esac
             done
             ;;
-        12)
+        15)
             while true; do
                 show_payment_verification_menu
                 read -r verify_choice
@@ -182,7 +276,7 @@ while true; do
                 esac
             done
             ;;
-        13)
+        16)
             echo -e "${GREEN}Enable transaction key storage? (y/n):${NC}"
             read -r enable_tx_key
             if [[ "$enable_tx_key" == "y" ]]; then
@@ -192,12 +286,62 @@ while true; do
                 execute_command "get_tx_key $txid"
             fi
             ;;
-        14)
+        17)
+            while true; do
+                show_address_book_menu
+                read -r book_choice
+                case $book_choice in
+                    1)
+                        execute_command "address_book"
+                        ;;
+                    2)
+                        echo -e "${GREEN}Enter address:${NC}"
+                        read -r addr
+                        echo -e "${GREEN}Enter description:${NC}"
+                        read -r desc
+                        execute_command "address_book add $addr $desc"
+                        ;;
+                    3)
+                        echo -e "${GREEN}Enter index to delete:${NC}"
+                        read -r index
+                        execute_command "address_book delete $index"
+                        ;;
+                    0)
+                        break
+                        ;;
+                    *)
+                        echo -e "${RED}Invalid option${NC}"
+                        sleep 2
+                        ;;
+                esac
+            done
+            ;;
+        18)
+            echo -e "${YELLOW}Wallet Description Operations:${NC}"
+            echo "1. Set Description"
+            echo "2. Show Description"
+            read -r desc_choice
+            case $desc_choice in
+                1)
+                    echo -e "${GREEN}Enter wallet description:${NC}"
+                    read -r description
+                    execute_command "set_description $description"
+                    ;;
+                2)
+                    execute_command "get_description"
+                    ;;
+                *)
+                    echo -e "${RED}Invalid option${NC}"
+                    sleep 2
+                    ;;
+            esac
+            ;;
+        19)
             echo -e "${GREEN}Enter donation amount:${NC}"
             read -r donation_amount
             execute_command "donate $donation_amount"
             ;;
-        15)
+        20)
             execute_command "version"
             ;;
         0)
